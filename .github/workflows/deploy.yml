@@ -1,0 +1,50 @@
+# Compila o site e publica a pasta out/ no repositório público docperito-site (branch gh-pages),
+# que serve o GitHub Pages. O código-fonte continua neste repositório privado.
+#
+# Configuração no repositório (Settings → Secrets and variables → Actions):
+# - Secret PAGES_DEPLOY_KEY: chave SSH privada com permissão de escrita no docperito-site (deploy key).
+# - Variável BASE_PATH: "/docperito-site" enquanto o site estiver em davialexandreh.github.io/docperito-site;
+#   vazia ("") quando o domínio www.docperito.com.br for configurado.
+# - Variável CNAME: não criada por enquanto; criar com "www.docperito.com.br" quando o domínio for apontado.
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+        env:
+          BASE_PATH: ${{ vars.BASE_PATH }}
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
+          external_repository: davialexandreh/docperito-site
+          publish_branch: gh-pages
+          publish_dir: ./out
+          cname: ${{ vars.CNAME }}
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "Deploy ${{ github.sha }}"

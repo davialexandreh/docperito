@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f6f7f7;
+  --color-surface: #ffffff;
+  --color-ink: #0f2430;
+  --color-body: #3e4f57;
+  --color-muted: #4a5b63;
+  --color-subtle: #56676f;
+  --color-brand: #0d425c;
+  --color-brand-dark: #082c3e;
+  --color-brand-soft: #b9cdd7;
+  --color-night: #0a2230;
+  --color-line: #dce3e6;
+  --color-line-strong: #c9d5da;
+  --color-tint: #e6ecee;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Compensa o header fixo ao navegar pelas âncoras. */
+  [id] {
+    scroll-margin-top: 88px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  .on-dark :focus-visible {
+    outline-color: #ffffff;
+  }
+}
+
+/* ---------- Animações ---------- */
+
+/* Hero: só CSS, começa no primeiro paint para não atrasar o LCP. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.hero-in {
+  animation: rise-in 0.9s var(--ease-out-expo) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.menu-in {
+  animation: menu-in 0.35s var(--ease-out-expo) both;
+}
+
+/* Revelação ao rolar: só esconde quando o JS está ativo (classe .js no <html>). */
+.js [data-reveal] {
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo),
+    clip-path 1.1s var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.js [data-reveal="up"]:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.js [data-reveal="line"] {
+  transform-origin: left center;
+}
+
+.js [data-reveal="line"]:not(.is-visible) {
+  transform: scaleX(0);
+}
+
+/* O clip-path fica no filho: se ficasse no elemento observado, o IntersectionObserver
+   o consideraria invisível e a foto nunca seria revelada. */
+.js [data-reveal="photo"] > * {
+  transition: clip-path 1.1s var(--ease-out-expo);
+}
+
+.js [data-reveal="photo"]:not(.is-visible) > * {
+  clip-path: inset(100% 0 0 0);
+}
+
+.js [data-reveal="photo"] img {
+  transition: transform 1.4s var(--ease-out-expo);
+}
+
+.js [data-reveal="photo"]:not(.is-visible) img {
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .hero-in,
+  .menu-in {
+    animation: none;
+  }
+
+  .js [data-reveal],
+  .js [data-reveal] > *,
+  .js [data-reveal] img {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+}
