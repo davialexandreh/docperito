@@ -1,11 +1,6 @@
-# Compila o site e publica a pasta out/ no repositório público docperito-site (branch gh-pages),
-# que serve o GitHub Pages. O código-fonte continua neste repositório privado.
-#
-# Configuração no repositório (Settings → Secrets and variables → Actions):
-# - Secret PAGES_DEPLOY_KEY: chave SSH privada com permissão de escrita no docperito-site (deploy key).
-# - Variável BASE_PATH: "/docperito-site" enquanto o site estiver em davialexandreh.github.io/docperito-site;
-#   vazia ("") quando o domínio www.docperito.com.br for configurado.
-# - Variável CNAME: não criada por enquanto; criar com "www.docperito.com.br" quando o domínio for apontado.
+# Compila o site estático e publica no GitHub Pages deste repositório.
+# O subcaminho (basePath) vem do configure-pages: "/docperito" em davialexandreh.github.io/docperito
+# e vazio quando houver domínio próprio configurado no Pages.
 name: Deploy GitHub Pages
 
 on:
@@ -19,9 +14,11 @@ concurrency:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -31,20 +28,25 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - id: pages
+        uses: actions/configure-pages@v5
+
       - run: npm ci
 
       - run: npm run build
         env:
-          BASE_PATH: ${{ vars.BASE_PATH }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/upload-pages-artifact@v4
         with:
-          deploy_key: ${{ secrets.PAGES_DEPLOY_KEY }}
-          external_repository: davialexandreh/docperito-site
-          publish_branch: gh-pages
-          publish_dir: ./out
-          cname: ${{ vars.CNAME }}
-          force_orphan: true
-          user_name: github-actions[bot]
-          user_email: github-actions[bot]@users.noreply.github.com
-          commit_message: "Deploy ${{ github.sha }}"
+          path: ./out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

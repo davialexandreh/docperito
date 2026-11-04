@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Subcaminho onde o site é servido (ex.: "/docperito-site" no GitHub Pages sem domínio próprio).
+// Subcaminho onde o site é servido (ex.: "/docperito" no GitHub Pages sem domínio próprio).
 // Vazio quando servido na raiz do domínio (www.docperito.com.br). Definido no build pela variável BASE_PATH.
 const basePath = process.env.BASE_PATH ?? "";
 
